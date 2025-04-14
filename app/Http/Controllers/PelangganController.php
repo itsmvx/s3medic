@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelanggan;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,7 @@ class PelangganController extends Controller
             'email' => 'required|email|unique:pelanggan,email',
             'username' => 'required|unique:pelanggan,username',
             'password' => 'required',
-            'tanggal_lahir' => 'required|date',
+            'tanggal_lahir' => 'required',
             'jenis_kelamin' => 'required|in:Laki-Laki,Perempuan',
             'alamat' => 'required',
             'no_telp' => 'required|numeric',
@@ -30,7 +31,7 @@ class PelangganController extends Controller
                 'email' => $validated['email'],
                 'username' => $validated['username'],
                 'password' => Hash::make($validated['password'], ['rounds' => 12]),
-                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'tanggal_lahir' => Carbon::parse($validated['tanggal_lahir']),
                 'jenis_kelamin' => $validated['jenis_kelamin'],
                 'alamat' => $validated['alamat'],
                 'no_telp' => $validated['no_telp'],

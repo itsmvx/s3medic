@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('pelanggan_id')->constrained('pelanggan')->cascadeOnDelete();
             $table->foreignId('produk_id')->constrained('produk')->cascadeOnDelete();
-            $table->integer('j   umlah')->default(0);
+            $table->integer('jumlah')->default(0);
             $table->timestamps();
         });
     }

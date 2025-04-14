@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KategoriProdukController;
+use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Keranjang;
 use App\Models\Produk;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Http;
@@ -15,16 +18,21 @@ Route::get('/', function () {
         'newestProducts' => fn() => Produk::select(['id', 'slug', 'nama', 'deskripsi', 'harga', 'stok', 'gambar'])->orderBy('created_at', 'desc')->take(4)->get(),
     ]);
 });
-Route::get('/login', function () {
-    return Inertia::render('LoginPage');
-})->name('auth.login');
+Route::get('/login', function () { return Inertia::render('LoginPage'); })->name('auth.login');
+Route::get('/login-admin', function () { return Inertia::render('LoginAdminPage'); })->name('auth.login-admin');
 Route::get('/register', function () {
     $response = Http::get('https://api-wilayah.elusiveness.my.id/api/provinces.json');
-
     return Inertia::render('RegisterPage', [
         'provinces' => $response->json()
     ]);
 })->name('auth.register');
+
+Route::prefix('auth')->name('auth.')->group(function () {
+
+    Route::post('/admin', [AuthController::class, 'authAdmin'])->name('admin');
+    Route::post('/pelanggan', [AuthController::class, 'authPelanggan'])->name('pelanggan');
+});
+
 Route::get('/store', function (\Illuminate\Http\Request $request) {
     $queryProducts = Produk::select(['id', 'slug', 'nama', 'deskripsi', 'harga', 'stok', 'gambar', 'kategori_produk_id'])
         ->with('kategori_produk:id,nama');
@@ -47,9 +55,21 @@ Route::get('/store', function (\Illuminate\Http\Request $request) {
 })->name('store');
 Route::get('/cart', function () {
     return Inertia::render('CartPage', [
-
+        'cartProducts' => Keranjang::select([
+            'keranjang.id as id',
+            'keranjang.jumlah',
+            'produk.nama',
+            'produk.deskripsi',
+            'produk.harga',
+            'produk.stok',
+            'produk.gambar',
+            'kategori_produk.nama as kategori_produk'
+        ])
+            ->join('produk', 'produk.id', '=', 'keranjang.produk_id')
+            ->join('kategori_produk', 'kategori_produk.id', '=', 'produk.kategori_produk_id')
+            ->get()
     ]);
-});
+})->name('cart');
 
 Route::prefix('wilayah')->name('wilayah.')->group(function () {
     Route::get('/regencies/{province_id}', function ($province_id) {
@@ -119,6 +139,12 @@ Route::prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::post('/create', [PelangganController::class, 'store'])->name('create');
     Route::post('/update', [PelangganController::class, 'update'])->name('update');
     Route::post('/delete', [PelangganController::class, 'destroy'])->name('delete');
+});
+Route::prefix('keranjang')->name('keranjang.')->group(function () {
+    Route::post('/create', [KeranjangController::class, 'store'])->name('create');
+    Route::post('/delete', [KeranjangController::class, 'destroy'])->name('delete');
+    Route::post('/increment', [KeranjangController::class, 'increment'])->name('increment');
+    Route::post('/decrement', [KeranjangController::class, 'decrement'])->name('decrement');
 });
 
 require __DIR__.'/admin.php';

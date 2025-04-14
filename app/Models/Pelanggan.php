@@ -6,5 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Pelanggan extends Authenticatable
 {
-    //
+    protected $table = 'pelanggan';
+    protected $primaryKey = 'id';
+    protected $guarded = ['id'];
 }

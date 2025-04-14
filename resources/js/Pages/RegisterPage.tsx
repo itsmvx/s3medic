@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Link } from "@inertiajs/react"
+import { Link, router } from "@inertiajs/react"
 import {
     Eye,
     EyeOff,
@@ -16,7 +16,8 @@ import {
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageProps } from "@/types";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterPage({ provinces }: PageProps<{
     provinces: {
@@ -24,11 +25,11 @@ export default function RegisterPage({ provinces }: PageProps<{
         name: string;
     }[];
 }>) {
+    const { toast } = useToast();
     const regionsDataInit = {
         onLoad: false,
         data: []
     };
-
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [name, setName] = useState("")
@@ -66,6 +67,7 @@ export default function RegisterPage({ provinces }: PageProps<{
     const [district, setDistrict] = useState("")
     const [village, setVillage] = useState("")
     const [noTelp, setNoTelp] = useState("")
+    const [jenisKelamin, setJenisKelamin] = useState("")
     const [alamat, setAlamat] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
@@ -105,19 +107,36 @@ export default function RegisterPage({ provinces }: PageProps<{
             return
         }
 
-        if (passwordStrength < 3) {
-            setError("Please use a stronger password")
-            return
-        }
-
         try {
             setIsLoading(true)
-            axios.post(route('pelanggan.create'), {
+            const response = await axios.post(route('pelanggan.create'), {
+                nama: name,
                 username: username,
                 email: email,
-            })
-        } catch (err) {
-            setError("Registration failed. Please try again.")
+                password: password,
+                tanggal_lahir: date,
+                jenis_kelamin: jenisKelamin,
+                alamat: alamat,
+                no_telp: noTelp,
+                kode_wilayah: village
+            });
+            toast({
+                variant: 'default',
+                className: 'bg-green-500 text-white',
+                title: "Berhasil!",
+                description: response.data.message,
+            });
+            router.visit(route('auth.login'));
+        } catch (err: unknown) {
+            const errMsg = err instanceof AxiosError && err.response?.data?.message
+                ? err.response.data.message as string
+                : 'Periksa lagi koneksi anda'
+            setError(errMsg);
+            toast({
+                variant: "destructive",
+                title: "Permintaan gagal diproses!",
+                description: errMsg,
+            });
         } finally {
             setIsLoading(false)
         }
@@ -201,8 +220,6 @@ export default function RegisterPage({ provinces }: PageProps<{
             })
 
     };
-
-    console.log(provinces);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -463,6 +480,23 @@ export default function RegisterPage({ provinces }: PageProps<{
                                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                     placeholder=""
                                 />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Jenis Kelamin
+                            </label>
+                            <div className="mt-1 relative rounded-md shadow-sm">
+                                <Select value={jenisKelamin} onValueChange={(val) => setJenisKelamin(val)}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Pilih Jenis Kelamin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Laki-Laki">Laki-Laki</SelectItem>
+                                        <SelectItem value="Perempuan">Perempuan</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

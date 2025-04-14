@@ -7,7 +7,7 @@ import { Eye, EyeOff, Lock, ArrowRight, User } from "lucide-react"
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
 
-export default function LoginPage() {
+export default function LoginAdminPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
@@ -25,7 +25,7 @@ export default function LoginPage() {
 
         try {
             setIsLoading(true)
-            axios.post(route('auth.pelanggan'), {
+            axios.post(route('auth.admin'), {
                 username: username,
                 password: password,
             })
@@ -57,11 +57,11 @@ export default function LoginPage() {
                                 S3Medic
                             </Link>
                         </div>
-                        <h2 className="mt-1 text-center text-3xl font-extrabold text-gray-900">Masuk ke Akun</h2>
+                        <h2 className="mt-1 text-center text-3xl font-extrabold text-gray-900">Masuk sebagai Admin</h2>
                         <p className="mt-1 mb-6 text-center text-sm text-gray-600">
-                            Atau{" "}
-                            <Link href={ route('auth.register') } className="font-medium text-blue-600 hover:text-blue-500">
-                                buat akun baru
+                            Bukan Admin?{" "}
+                            <Link href={ route('auth.login') } className="font-medium text-blue-600 hover:text-blue-500">
+                                Masuk sebagai Pelanggan
                             </Link>
                         </p>
                     </div>

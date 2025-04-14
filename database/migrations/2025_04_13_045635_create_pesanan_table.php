@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('total')->default(0);
             $table->string('metode_pembayaran')->nullable();
             $table->timestamp('tanggal_pesanan')->useCurrent();
-            $table->string('alamat_pengiriman');
+            $table->string(  'alamat_pengiriman');
 
             $table->timestamps();
         });
