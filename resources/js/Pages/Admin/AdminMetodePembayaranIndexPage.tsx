@@ -9,7 +9,7 @@ import {
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { Button } from "@/components/ui/button"
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { ArrowUpDown, MoreHorizontal, Plus, Loader2, Pencil, Trash2 } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal, Plus, Loader2, Pencil, Trash2, Check, X } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { TableSearchForm } from "@/components/table-search-form";
 import { cn } from "@/lib/utils";
@@ -28,13 +28,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import DataTable from "@/components/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { IconSwitch } from "@/components/icon-switch";
 
-type KategoriProduk = {
+type MetodePembayaran = {
     id: number;
     nama: string;
+    is_available: boolean;
 };
-export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageProps<{
-    pagination: PaginationData<KategoriProduk[]>;
+export default function AdminMetodePembayaranIndexPage({ auth, pagination }: PageProps<{
+    pagination: PaginationData<MetodePembayaran[]>;
 }>) {
     const { toast } = useToast();
     type CreateForm = {
@@ -52,6 +54,11 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
         validation: string;
         onSubmit: boolean;
     };
+    type UpdateStatus = {
+        id: number;
+        onSubmit: boolean;
+    };
+
     const createFormInit: CreateForm = {
         nama: '',
         onSubmit: false
@@ -67,6 +74,11 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
         validation: '',
         onSubmit: false
     };
+    const updateStatusInit: UpdateStatus = {
+        id: 0,
+        onSubmit: false
+    };
+
     const [ openCreateForm, setOpenCreateForm ] = useState(false);
     const [ openUpdateForm, setOpenUpdateForm ] = useState(false);
     const [ openDeleteForm, setOpenDeleteForm ] = useState(false);
@@ -74,8 +86,41 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
     const [ createForm, setCreateForm ] = useState<CreateForm>(createFormInit);
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>(updateFormInit);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
+    const [ updateStatus, setUpdateStatus ] = useState<UpdateStatus>(updateStatusInit);
 
-    const columns: ColumnDef<KategoriProduk>[] = [
+    const handleUpdateStatus = (id: number, newStatus: boolean) => {
+        setUpdateStatus({
+            id: id,
+            onSubmit: true
+        });
+
+        axios.post(route('metode-pembayaran.update-status'), {
+            id: id,
+            status: newStatus,
+        })
+            .then((res) => {
+                toast({
+                    variant: 'default',
+                    className: 'bg-green-500 text-white',
+                    title: "Berhasil!",
+                    description: res.data.message,
+                });
+                router.reload({ only: ['pagination'] });
+            })
+            .catch((err) => {
+                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
+                    ? err.response.data.message
+                    : 'Error tidak diketahui terjadi!';
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal diproses!",
+                    description: errMsg,
+                });
+            })
+            .finally(() => setUpdateStatus(updateStatusInit));
+    };
+
+    const columns: ColumnDef<MetodePembayaran>[] = [
         {
             accessorKey: "nama",
             header: ({ column }) => {
@@ -85,7 +130,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start"
                     >
-                        Nama Kategori Produk
+                        Nama Metode Pembayaran
                         <ArrowUpDown />
                     </Button>
                 );
@@ -95,6 +140,41 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                     {row.getValue("nama")}
                 </div>
             ),
+        },
+        {
+            accessorKey: "is_available",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="w-full justify-start"
+                    >
+                        Status Aktif
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                const originalRow = row.original;
+                const currStatus = Boolean(originalRow.is_available);
+                const isCurrStatusSubmit = updateStatus.id === originalRow.id && updateStatus.onSubmit;
+                return (
+                    <>
+                        <div className="flex flex-row items-center gap-1 min-w-20 px-2 capitalize ">
+                            <IconSwitch
+                                checkedIcon={ isCurrStatusSubmit ? <Loader2 className="animate-spin w-4 h-4 text-blue-600" /> : <Check className="w-4 h-4 text-green-500" /> }
+                                uncheckedIcon={ isCurrStatusSubmit ? <Loader2 className="animate-spin w-4 h-4 text-blue-600" /> : <X className="w-4 h-4 text-red-600" /> }
+                                className="data-[state=checked]:bg-green-500"
+                                aria-label="Status Praktikum"
+                                checked={ currStatus }
+                                onCheckedChange={ (value) => handleUpdateStatus(originalRow.id, value) }
+                            />
+                            <p className="font-medium text-xs tracking-wider">{ currStatus ? 'Aktif' : 'Nonaktif' }</p>
+                        </div>
+                    </>
+                )
+            },
         },
         {
             id: "actions",
@@ -144,7 +224,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
         const { nama } = createForm;
         axios.post<{
             message: string;
-        }>(route('kategori-produk.create'), {
+        }>(route('metode-pembayaran.create'), {
             nama: nama,
         })
             .then((res) => {
@@ -177,7 +257,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
 
         axios.post<{
             message: string;
-        }>(route('kategori-produk.update'), {
+        }>(route('metode-pembayaran.update'), {
             id: id,
             nama: nama,
         })
@@ -211,7 +291,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
 
         axios.post<{
             message: string;
-        }>(route('kategori-produk.delete'), {
+        }>(route('metode-pembayaran.delete'), {
             id: id,
         })
             .then((res) => {
@@ -243,17 +323,17 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
     };
     const handleOpenUpdateFormChange = (open: boolean) => {
         setOpenUpdateForm(open);
-        setUpdateForm(updateFormInit);
+        setCreateForm(updateFormInit);
     };
 
     return (
         <AdminLayout auth={auth}>
-            <Head title="Admin - Manajemen Kategori Produk" />
+            <Head title="Admin - Manajemen Metode Pembayaran" />
             <CardTitle>
-                Manajemen Kategori Produk
+                Manajemen Metode Pembayaran
             </CardTitle>
             <CardDescription>
-                Data Kategori Produk yang terdaftar
+                Data Metode Pembayaran yang terdaftar
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
                 <AlertDialog open={ openCreateForm } onOpenChange={ handleOpenCreateFormChange }>
@@ -265,15 +345,15 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                     <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
-                                Tambah Kategori Produk
+                                Tambah Metode Pembayaran
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-foreground">
-                                Menambahkan Kategori Produk baru, contoh: <strong>Alat Diagnostik</strong>
+                                Menambahkan Metode Pembayaran baru, contoh: <strong>Alat Diagnostik</strong>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
                             <div className="grid gap-2">
-                                <Label htmlFor="nama">Nama Kategori Produk</Label>
+                                <Label htmlFor="nama">Nama Metode Pembayaran</Label>
                                 <Input
                                     type="text"
                                     name="nama"
@@ -297,7 +377,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                 </AlertDialog>
                 <TableSearchForm />
             </div>
-            <DataTable<KategoriProduk>
+            <DataTable<MetodePembayaran>
                 columns={columns}
                 data={pagination.data}
                 pagination={pagination}
@@ -308,15 +388,15 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                 <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Update Kategori Produk
+                            Update Metode Pembayaran
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Anda akan mengubah nama Kategori Produk
+                            Anda akan mengubah nama Metode Pembayaran
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
                         <div className="grid gap-2">
-                            <Label htmlFor="nama">Nama Kategori Produk</Label>
+                            <Label htmlFor="nama">Nama Metode Pembayaran</Label>
                             <Input
                                 type="text"
                                 name="nama"
@@ -348,11 +428,11 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                 <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Hapus Kategori Produk
+                            Hapus Metode Pembayaran
                         </AlertDialogTitle>
                         <AlertDialogDescription className="flex flex-col gap-0.5">
                             <p className="text-red-600 font-bold">
-                                Anda akan menghapus Kategori Produk!
+                                Anda akan menghapus Metode Pembayaran!
                             </p>
                             <br/>
                             <p className="text-red-600">

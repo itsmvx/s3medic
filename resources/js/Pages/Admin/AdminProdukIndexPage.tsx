@@ -235,7 +235,7 @@ export default function AdminProdukIndexPage({ auth, pagination }: PageProps<{
 
 
     return (
-        <AdminLayout>
+        <AdminLayout auth={auth}>
             <Head title="Admin - Manajemen Produk" />
             <CardTitle>
                 Manajemen Produk

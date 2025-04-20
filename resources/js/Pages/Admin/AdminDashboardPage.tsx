@@ -8,12 +8,13 @@ import {
 import { Link } from "@inertiajs/react";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { MyShorekeeper } from "@/lib/StaticImagesLib";
+import { PageProps } from "@/types";
 
-export default function AdminDashboardPage() {
+export default function AdminDashboardPage({ auth }: PageProps) {
 
     return (
         <>
-            <AdminLayout>
+            <AdminLayout auth={auth}>
                 <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     {/* Stats Cards */}
                     <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -27,20 +28,10 @@ export default function AdminDashboardPage() {
                                         <dl>
                                             <dt className="text-sm font-medium text-gray-500 truncate">Transaksi Hari ini</dt>
                                             <dd>
-                                                <div className="font-bold text-gray-900">Rp123.456.000</div>
+                                                <div className="truncate font-bold text-gray-900">Rp123.456.000</div>
                                             </dd>
                                         </dl>
                                     </div>
-                                </div>
-                            </div>
-                            <div className="bg-gray-50 px-5 py-3">
-                                <div className="text-sm">
-                                    <Link href="#" className="group font-medium text-blue-600 hover:text-blue-500">
-                                        <div className="flex gap-0.5 items-center">
-                                            <p>Manajemen Transakasi</p>
-                                            <ArrowBigRight className="translate-x-0 group-hover:translate-x-1.5 transition-all" />
-                                        </div>
-                                    </Link>
                                 </div>
                             </div>
                         </div>

@@ -30,46 +30,20 @@ const data: {
 } = {
     navMain: [
         {
-            title: "Produk",
-            url: "#",
-            items: [
-                {
-                    title: "Kategori Produk",
-                    url: route('admin.kategori-produk.index'),
-                    route: 'admin.kategori-produk.index'
-                },
-                {
-                    title: "Manajemen Produk",
-                    url: route('admin.produk.index'),
-                    route: 'admin.produk.index'
-                },
-            ],
-        },
-        {
             title: "Transaksi",
             url: "#",
             items: [
                 {
-                    title: "Status Pesanan",
-                    url: route('admin.status-pesanan.index'),
-                    route: 'admin.status-pesanan.index'
-                },
-                {
-                    title: "Metode Pembayaran",
-                    url: route('admin.metode-pembayaran.index'),
-                    route: 'admin.metode-pembayaran.index'
-                },
-                {
-                    title: "Manajemen Pesanan",
-                    url: route('admin.pesanan.index'),
-                    route: 'admin.pesanan.index'
+                    title: "Daftar Pesanan",
+                    url: '',
+                    route: ''
                 },
             ],
         },
     ],
 }
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function PelangganSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar {...props}>
             <SidebarHeader className="bg-white">
@@ -98,9 +72,9 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={ route().current() === 'admin.dashboard' }>
-                                <Link href={route('admin.dashboard')}>
-                                    Dashboard
+                            <SidebarMenuButton asChild isActive={ route().current() === 'pelanggan.profile' }>
+                                <Link href={route('pelanggan.profile')}>
+                                    Profil Saya
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

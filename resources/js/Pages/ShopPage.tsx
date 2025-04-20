@@ -107,7 +107,15 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
     const addToCart = (produk_id: number) => {
         const authPelanggan = auth.user;
         if (!authPelanggan) {
-            router.visit(route('auth.login'));
+            router.visit(route('pelanggan.login'));
+            return;
+        }
+        if (auth.role !== 'pelanggan') {
+            toast({
+                variant: "destructive",
+                title: "Heyy !",
+                description: 'Kamu bukan Pelanggan :)',
+            });
             return;
         }
 
@@ -133,6 +141,16 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
                     description: errMsg,
                 });
             })
+    };
+
+    const buyNow = () => {
+        const authPelanggan = auth.user;
+        if (!authPelanggan) {
+            router.visit(route('pelanggan.login'));
+            return;
+        }
+
+
     };
 
     return (
@@ -259,7 +277,7 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
                                 </div>
 
                                 {/* Categories */}
-                                <div className="border-t border-gray-200 py-4">
+                                <div className="border-t border-gray-200 py-4 min-h-72">
                                     <h3 className="mb-3 text-sm font-medium text-gray-900">Kategori</h3>
                                     <div className="space-y-2">
                                         {kategoriProduks.map((kategori) => (
@@ -277,52 +295,6 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
                                                 </label>
                                             </div>
                                         ))}
-                                    </div>
-                                </div>
-
-                                {/* Price Range */}
-                                <div className="border-t border-gray-200 py-4">
-                                    <h3 className="mb-3 text-sm font-medium text-gray-900">Rentang Harga</h3>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="rounded-md border border-gray-300 px-3 py-1.5">
-                                                <span className="text-sm text-gray-900">{priceRange[0].toLocaleString('id-ID')}</span>
-                                            </div>
-                                            <span className="text-sm text-gray-500">to</span>
-                                            <div className="rounded-md border border-gray-300 px-3 py-1.5">
-                                                <span className="text-sm text-gray-900">{priceRange[1].toLocaleString('id-ID')}</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="min-price" className="mb-1 block text-xs text-gray-500">
-                                                Minimum
-                                            </label>
-                                            <input
-                                                type="range"
-                                                id="min-price"
-                                                min="0"
-                                                max="1000000"
-                                                step="1000"
-                                                value={priceRange[0]}
-                                                onChange={(e) => handlePriceRangeChange(0, Number.parseInt(e.target.value))}
-                                                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="max-price" className="mb-1 block text-xs text-gray-500">
-                                                Maksimal
-                                            </label>
-                                            <input
-                                                type="range"
-                                                id="max-price"
-                                                min="0"
-                                                max="1000000000"
-                                                step="1000"
-                                                value={priceRange[1]}
-                                                onChange={(e) => handlePriceRangeChange(1, Number.parseInt(e.target.value))}
-                                                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-                                            />
-                                        </div>
                                     </div>
                                 </div>
 
@@ -382,15 +354,15 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
                             {produks.length === 0 && (
                                 <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-12">
                                     <SlidersHorizontal className="h-12 w-12 text-gray-400" />
-                                    <h3 className="mt-4 text-lg font-medium text-gray-900">No products found</h3>
+                                    <h3 className="mt-4 text-lg font-medium text-gray-900">Tidak ada produk ditemukan</h3>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        Try adjusting your search or filter to find what you're looking for.
+                                        Coba atur ulang pencarian atau filter untuk menemukan apa yang kamu cari
                                     </p>
                                     <button
                                         onClick={resetFilters}
                                         className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                     >
-                                        Reset Filters
+                                        Atur ulang filter
                                     </button>
                                 </div>
                             )}
@@ -424,7 +396,7 @@ export default function StorePage({ auth, kategoriProduks, produks }: PageProps<
                                                     <span className="font-bold text-blue-600">Rp{product.harga.toLocaleString("id-ID")}</span>
                                                 </div>
                                                 <div className="mt-2 flex flex-wrap items-center justify-end gap-2 *:flex *:items-center *:gap-0.5">
-                                                    <button className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+                                                    <button onClick={() => router.visit(route('product.details', { slug: product.slug }))} className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
                                                         <ScanSearch size={16} strokeWidth={2} /> Detail
                                                     </button>
                                                     <button

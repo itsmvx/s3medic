@@ -1,9 +1,7 @@
 export type AuthUser = {
     id: string;
     nama: string;
-    avatar: string | null;
     username: string;
-    laboratorium_id: string | null;
 };
 export type AuthRole = 'admin' | 'pelanggan';
 

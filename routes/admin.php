@@ -16,12 +16,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/details/{id}', [AdminPagesController::class, 'produkDetails'])->name('details');
     });
     Route::prefix('status-pesanan')->name('status-pesanan.')->group(function () {
-
+        Route::get('/', [AdminPagesController::class, 'statusPesananIndex'])->name('index');
+    });
+    Route::prefix('metode-pembayaran')->name('metode-pembayaran.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'metodePembayaranIndex'])->name('index');
     });
     Route::prefix('pesanan')->name('pesanan.')->group(function () {
-
+        Route::get('/', [AdminPagesController::class, 'pesananIndex'])->name('index');
     });
     Route::prefix('pelanggan')->name('pelanggan.')->group(function () {
 
+    });
+    Route::prefix('metode-pembayaran')->name('metode-pembayaran.')->group(function () {
+        Route::get('/', [AdminPagesController::class, 'metodePembayaranIndex'])->name('index');
     });
 });

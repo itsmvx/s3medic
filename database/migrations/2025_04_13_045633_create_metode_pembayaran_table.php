@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('status_pesanan', function (Blueprint $table) {
+        Schema::create('metode_pembayaran', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->boolean('is_cancelable')->default(false);
+            $table->boolean('is_available')->default(true);
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('status_pesanan');
+        Schema::dropIfExists('metode_pembayaran');
     }
 };

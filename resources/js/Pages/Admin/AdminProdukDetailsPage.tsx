@@ -105,7 +105,7 @@ export default function AdminProdukCreatePage({ auth, kategoriProduks, produk }:
 
     return (
         <>
-            <AdminLayout>
+            <AdminLayout auth={auth}>
                 <Head title={ `Admin - Detail Produk ${produk.nama}` } />
                 <CardTitle>
                     Detail Produk

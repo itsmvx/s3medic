@@ -93,7 +93,7 @@ export default function AdminProdukCreatePage({ auth, kategoriProduks }: PagePro
 
     return (
         <>
-            <AdminLayout>
+            <AdminLayout auth={auth}>
                 <Head title="Admin - Menambahkan Produk" />
                 <CardTitle>
                     Menambahkan Produk

@@ -25,12 +25,12 @@ export default function LoginPage() {
 
         try {
             setIsLoading(true)
-            axios.post(route('auth.pelanggan'), {
+            axios.post(route('auth.admin'), {
                 username: username,
                 password: password,
             })
                 .then(() => {
-                    router.visit('/', { replace: true });
+                    router.visit(route('admin.dashboard'), { replace: true });
                 })
                 .catch((err: unknown) => {
                     const errMsg: string = err instanceof AxiosError && err.response?.data?.message
@@ -48,7 +48,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -57,11 +56,11 @@ export default function LoginPage() {
                                 S3Medic
                             </Link>
                         </div>
-                        <h2 className="mt-1 text-center text-3xl font-extrabold text-gray-900">Masuk ke Akun</h2>
+                        <h2 className="mt-1 text-center text-3xl font-extrabold text-gray-900">Masuk sebagai Atemin</h2>
                         <p className="mt-1 mb-6 text-center text-sm text-gray-600">
-                            Atau{" "}
-                            <Link href={ route('pelanggan.register') } className="font-medium text-blue-600 hover:text-blue-500">
-                                buat akun baru
+                            Bukan Atemin?{" "}
+                            <Link href={ route('pelanggan.login') } className="font-medium text-blue-600 hover:text-blue-500">
+                                Login sebagai Pelanggan
                             </Link>
                         </p>
                     </div>

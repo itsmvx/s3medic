@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         $this->call([
-            KategoriProdukSeeder::class
+            KategoriProdukSeeder::class,
+            MetodePembayaranSeeder::class,
+            StatusPesananSeeder::class,
+            AdminSeeder::class,
         ]);
     }
 }

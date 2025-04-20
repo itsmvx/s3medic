@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('kode')->unique();
             $table->foreignId('status_pesanan_id')->nullable()->constrained('status_pesanan')->nullOnDelete();
             $table->integer('total')->default(0);
-            $table->string('metode_pembayaran')->nullable();
+            $table->foreignId('metode_pembayaran_id')->nullable()->constrained('metode_pembayaran')->nullOnDelete();
             $table->timestamp('tanggal_pesanan')->useCurrent();
             $table->string(  'alamat_pengiriman');
 

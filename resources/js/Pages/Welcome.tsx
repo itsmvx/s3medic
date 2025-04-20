@@ -16,7 +16,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Link } from "@inertiajs/react"
+import { Link, router } from "@inertiajs/react"
 import { MyShorekeeper, MyShorekeeperHD } from "@/lib/StaticImagesLib";
 import { PageProps } from "@/types";
 import { AppLayout } from "@/layouts/AppLayout";
@@ -32,6 +32,7 @@ export default function Welcome({ auth, newestProducts }: PageProps<{
         gambar: string | null;
     }[];
 }>) {
+    console.log(auth)
     return (
         <>
             <AppLayout auth={auth} active="home">
@@ -49,7 +50,7 @@ export default function Welcome({ auth, newestProducts }: PageProps<{
                                     </p>
                                     <div className="flex flex-col gap-2 lg:flex-row">
                                         <Link
-                                            href="#"
+                                            href={route('store')}
                                             className="inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700"
                                         >
                                             Mulai Belanja
@@ -126,7 +127,7 @@ export default function Welcome({ auth, newestProducts }: PageProps<{
                                     <div
                                         key={product.id}
                                         className="group overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm transition-all hover:shadow-md cursor-pointer"
-                                        onClick={() => console.log(product.slug)}
+                                        onClick={() => router.visit(route('product.details', { slug: product.slug }))}
                                     >
                                         <div className="relative overflow-hidden">
                                             <img
@@ -225,31 +226,60 @@ export default function Welcome({ auth, newestProducts }: PageProps<{
                     {/* Invitation */}
                     <section className="py-12 md:py-16 border-t border-blue-100">
                         <div className="container mx-auto px-4 md:px-6">
-                            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-                                <div className="space-y-2">
-                                    <h2 className="text-2xl font-bold tracking-tighter text-blue-900 sm:text-3xl">
-                                        Tertarik? Mulai mendaftar Akun
-                                    </h2>
-                                    <p className="mx-auto max-w-[600px] text-blue-700">
-                                        Mendaftar Akun untuk mengakses fitur lengkap sebagai Pelanggan dan dapatkan penawaran ekslusif untuk pelanggan baru
-                                    </p>
-                                </div>
-                                <div className="mx-auto grid gap-1 max-w-md space-y-2">
-                                    <Link
-                                        href={route('auth.register')}
-                                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                                    >
-                                        Registrasi
-                                    </Link>
-                                    <span className="text-blue-600">atau</span>
-                                    <Link
-                                        href={route('auth.login')}
-                                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                                    >
-                                        Masuk
-                                    </Link>
-                                </div>
-                            </div>
+                            {auth.user
+                                ? (
+                                    <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                                        <div className="space-y-2">
+                                            <h2 className="text-2xl font-bold tracking-tighter text-blue-900 sm:text-3xl">
+                                                Selamat Datang, { auth.user.nama }
+                                            </h2>
+                                            <p className="mx-auto max-w-[600px] text-blue-700">
+                                                Mendaftar Akun untuk mengakses fitur lengkap sebagai Pelanggan dan dapatkan penawaran ekslusif untuk pelanggan baru
+                                            </p>
+                                        </div>
+                                        <div className="mx-auto grid gap-1 max-w-md space-y-2">
+                                            <Link
+                                                href={route('store')}
+                                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                            >
+                                                Mulai Belanja
+                                            </Link>
+                                            <span className="text-blue-600">atau</span>
+                                            <Link
+                                                href={route('pelanggan.login')}
+                                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                            >
+                                                Masuk
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                                        <div className="space-y-2">
+                                            <h2 className="text-2xl font-bold tracking-tighter text-blue-900 sm:text-3xl">
+                                                Tertarik? Mulai mendaftar Akun
+                                            </h2>
+                                            <p className="mx-auto max-w-[600px] text-blue-700">
+                                                Mendaftar Akun untuk mengakses fitur lengkap sebagai Pelanggan dan dapatkan penawaran ekslusif untuk pelanggan baru
+                                            </p>
+                                        </div>
+                                        <div className="mx-auto grid gap-1 max-w-md space-y-2">
+                                            <Link
+                                                href={route('pelanggan.register')}
+                                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                            >
+                                                Registrasi
+                                            </Link>
+                                            <span className="text-blue-600">atau</span>
+                                            <Link
+                                                href={route('pelanggan.login')}
+                                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                            >
+                                                Masuk
+                                            </Link>
+                                        </div>
+                                    </div>
+                                )}
                         </div>
                     </section>
                 </main>

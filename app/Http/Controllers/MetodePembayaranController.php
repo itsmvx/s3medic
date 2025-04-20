@@ -2,29 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StatusPesanan;
+use App\Models\MetodePembayaran;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
-class StatusPesananController extends Controller
+class MetodePembayaranController extends Controller
 {
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama' => 'required|string',
-            'is_cancelable' => 'nullable|boolean',
+            'is_available' => 'nullable|boolean',
         ]);
 
         $data = [
             'nama' => $validated['nama'],
         ];
 
-        if (array_key_exists('is_cancelable', $validated)) {
-            $data['is_cancelable'] = $validated['is_cancelable'];
+        if (array_key_exists('is_available', $validated)) {
+            $data['is_available'] = $validated['is_available'];
         }
 
         try {
-            StatusPesanan::create($data);
+            MetodePembayaran::create($data);
 
             return response()->json([
                 'message' => 'Metode Pembayaran Berhasil Ditambahkan',
@@ -39,7 +39,7 @@ class StatusPesananController extends Controller
         $validated = $request->validate([
             'id' => 'required|exists:metode_pembayaran,id',
             'nama' => 'required|string',
-            'is_cancelable' => 'nullable|boolean',
+            'is_available' => 'nullable|boolean',
         ]);
 
         $data = [
@@ -47,12 +47,12 @@ class StatusPesananController extends Controller
             'nama' => $validated['nama'],
         ];
 
-        if (array_key_exists('is_cancelable', $validated)) {
-            $data['is_cancelable'] = $validated['is_cancelable'];
+        if (array_key_exists('is_available', $validated)) {
+            $data['is_available'] = $validated['is_available'];
         }
 
         try {
-            StatusPesanan::where('id', $validated['id'])
+            MetodePembayaran::where('id', $validated['id'])
                 ->update($data);
 
             return response()->json([
@@ -66,17 +66,17 @@ class StatusPesananController extends Controller
     public function updateStatus(Request $request)
     {
         $validated = $request->validate([
-            'id' => 'required|exists:status_pesanan,id',
+            'id' => 'required|exists:metode_pembayaran,id',
             'status' => 'required|boolean',
         ]);
 
         try {
-            StatusPesanan::where('id', $validated['id'])->update([
-                'is_cancelable' => $validated['status']
+            MetodePembayaran::where('id', $validated['id'])->update([
+                'is_available' => $validated['status']
             ]);
 
             return response()->json([
-                'message' => 'Pembatalan Status Pesanan berhasil diperbarui'
+                'message' => 'Status Metode Pembayaran berhasil diperbarui'
             ]);
         } catch (QueryException $exception) {
             return $this->queryExceptionResponse($exception);
@@ -90,7 +90,7 @@ class StatusPesananController extends Controller
         ]);
 
         try {
-            StatusPesanan::where('id', $validated['id'])
+            MetodePembayaran::where('id', $validated['id'])
                 ->delete();
             return response()->json([
                 'message' => 'Metode Pembayaran Berhasil dihapus',

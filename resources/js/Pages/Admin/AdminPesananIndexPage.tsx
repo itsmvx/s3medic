@@ -9,41 +9,51 @@ import {
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { Button } from "@/components/ui/button"
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { ArrowUpDown, MoreHorizontal, Plus, Loader2, Pencil, Trash2 } from "lucide-react"
+import { ColumnDef } from "@tanstack/react-table"
+import { ArrowUpDown, MoreHorizontal, Pencil, Loader2, Trash2, Plus, CircleCheck, CircleX } from "lucide-react"
 import { FormEvent, useState } from "react";
 import { TableSearchForm } from "@/components/table-search-form";
 import { cn } from "@/lib/utils";
+import { Head, router } from "@inertiajs/react";
+import { PageProps, PaginationData } from "@/types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Head, router } from "@inertiajs/react";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { PageProps, PaginationData } from "@/types";
 import {
     AlertDialog,
     AlertDialogCancel,
     AlertDialogContent, AlertDialogDescription,
     AlertDialogHeader,
-    AlertDialogTitle, AlertDialogTrigger
+    AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import DataTable from "@/components/data-table";
-import { ColumnDef } from "@tanstack/react-table";
-
-type KategoriProduk = {
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+type IDNama = {
     id: number;
     nama: string;
 };
-export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageProps<{
-    pagination: PaginationData<KategoriProduk[]>;
+type Pesanan = {
+    id: number;
+    pelanggan: IDNama | null;
+    status_pesanan: IDNama | null;
+    metode_pembayaran: IDNama | null;
+    kode: string;
+    total: number;
+    tanggal_pesanan: string;
+    alamat_pengiriman: string;
+};
+
+export default function AdminPesananIndexPage({ auth, pagination, statusPesanans }: PageProps<{
+    pagination: PaginationData<Pesanan[]>;
+    statusPesanans: IDNama[];
 }>) {
+    console.log(pagination.data);
     const { toast } = useToast();
-    type CreateForm = {
-        nama: string;
-        onSubmit: boolean;
-    };
+
     type UpdateForm = {
         id: number;
-        nama: string;
+        status_pesanan_id: number;
         onSubmit: boolean;
     };
     type DeleteForm = {
@@ -52,13 +62,9 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
         validation: string;
         onSubmit: boolean;
     };
-    const createFormInit: CreateForm = {
-        nama: '',
-        onSubmit: false
-    };
     const updateFormInit: UpdateForm = {
         id: 0,
-        nama: '',
+        status_pesanan_id: 0,
         onSubmit: false
     };
     const deleteFormInit: DeleteForm = {
@@ -67,17 +73,21 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
         validation: '',
         onSubmit: false
     };
-    const [ openCreateForm, setOpenCreateForm ] = useState(false);
+
     const [ openUpdateForm, setOpenUpdateForm ] = useState(false);
     const [ openDeleteForm, setOpenDeleteForm ] = useState(false);
 
-    const [ createForm, setCreateForm ] = useState<CreateForm>(createFormInit);
     const [ updateForm, setUpdateForm ] = useState<UpdateForm>(updateFormInit);
     const [ deleteForm, setDeleteForm ] = useState<DeleteForm>(deleteFormInit);
 
-    const columns: ColumnDef<KategoriProduk>[] = [
+    const handleOpenUpdateFormChange = (open: boolean) => {
+        setOpenUpdateForm(open);
+        setUpdateForm(updateFormInit);
+    };
+
+    const columns: ColumnDef<Pesanan>[] = [
         {
-            accessorKey: "nama",
+            accessorKey: "pelanggan",
             header: ({ column }) => {
                 return (
                     <Button
@@ -85,16 +95,75 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                         className="w-full justify-start"
                     >
-                        Nama Kategori Produk
+                        Pelanggan
                         <ArrowUpDown />
                     </Button>
                 );
             },
-            cell: ({ row }) => (
-                <div className="capitalize w-full ml-4">
-                    {row.getValue("nama")}
-                </div>
-            ),
+            cell: ({ row }) => {
+                const pelanggan = row.original.pelanggan;
+                return (
+                    <div className="capitalize min-w-60 truncate ml-4">
+                        {pelanggan?.nama ?? ''}
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: "status_pesanan",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="w-full justify-start"
+                    >
+                        Status Pesanan
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                const status_pesanan = row.original.status_pesanan;
+                return (
+                    <div className="flex items-center justify-between gap-1 capitalize min-w-60 truncate ml-4">
+                        <p>{status_pesanan?.nama ?? ''}</p>
+                        <Button size="icon" variant="ghost" className="bg-blue-500 hover:bg-blue-500/90 text-white hover:text-white" onClick={() => {
+                            setOpenUpdateForm(true);
+                            setUpdateForm((prevState) => ({
+                                ...prevState,
+                                id: row.original.id,
+                                status_pesanan_id: status_pesanan?.id ?? 0,
+                            }))
+                        }}>
+                            <Pencil />
+                        </Button>
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: "metode_pembayaran",
+            header: ({ column }) => {
+                return (
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                        className="w-full justify-start"
+                    >
+                        Metode Pembayaran
+                        <ArrowUpDown />
+                    </Button>
+                );
+            },
+            cell: ({ row }) => {
+                const metode_pembayaran = row.original.metode_pembayaran;
+                return (
+                    <div className="capitalize min-w-60 truncate ml-4">
+                        {metode_pembayaran?.nama ?? ''}
+                    </div>
+                );
+            },
         },
         {
             id: "actions",
@@ -111,22 +180,15 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={ () => {
-                                setOpenUpdateForm(true);
-                                setUpdateForm((prevState) => ({
-                                    ...prevState,
-                                    id: originalRow.id,
-                                    nama: originalRow.nama,
-                                }));
-                            } }>
-                                <Pencil /> Ubah data
+                            <DropdownMenuItem onClick={ () => router.visit(route('admin.produk.details', { id: originalRow.id })) }>
+                                <Pencil /> Details
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={ () => {
                                 setOpenDeleteForm(true);
                                 setDeleteForm((prevState) => ({
                                     ...prevState,
                                     id: originalRow.id,
-                                    nama: originalRow.nama
+                                    nama: originalRow.pelanggan?.nama ?? ''
                                 }));
                             } }>
                                 <Trash2 /> Hapus data
@@ -138,52 +200,18 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
             },
         },
     ];
-    const handleCreateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+
+    const handleUpdateStatusSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setCreateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { nama } = createForm;
-        axios.post<{
-            message: string;
-        }>(route('kategori-produk.create'), {
-            nama: nama,
-        })
-            .then((res) => {
-                setCreateForm(createFormInit);
-                setOpenCreateForm(false);
-                toast({
-                    variant: 'default',
-                    className: 'bg-green-500 text-white',
-                    title: "Berhasil!",
-                    description: res.data.message,
-                });
-                router.reload({ only: ['pagination'] });
-            })
-            .catch((err: unknown) => {
-                const errMsg: string = err instanceof AxiosError && err.response?.data?.message
-                    ? err.response.data.message
-                    : 'Error tidak diketahui terjadi!';
-                setCreateForm((prevState) => ({ ...prevState, onSubmit: false }));
-                toast({
-                    variant: "destructive",
-                    title: "Permintaan gagal diproses!",
-                    description: errMsg,
-                });
-            });
-    };
-    const handleUpdateFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setUpdateForm((prevState) => ({ ...prevState, onSubmit: true }));
-        const { id, nama } = updateForm;
+        const { id, status_pesanan_id } = updateForm;
 
         axios.post<{
             message: string;
-        }>(route('kategori-produk.update'), {
+        }>(route('pesanan.update-status'), {
             id: id,
-            nama: nama,
+            status_pesanan_id: status_pesanan_id
         })
             .then((res) => {
-                setUpdateForm(updateFormInit);
-                setOpenUpdateForm(false);
                 toast({
                     variant: 'default',
                     className: 'bg-green-500 text-white',
@@ -192,26 +220,29 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                 });
                 router.reload({ only: ['pagination'] });
             })
-            .catch((err: unknown) => {
+            .catch((err) => {
                 const errMsg: string = err instanceof AxiosError && err.response?.data?.message
                     ? err.response.data.message
                     : 'Error tidak diketahui terjadi!';
-                setUpdateForm((prevState) => ({ ...prevState, onSubmit: false }));
                 toast({
                     variant: "destructive",
                     title: "Permintaan gagal diproses!",
                     description: errMsg,
                 });
-            });
+            })
+            .finally(() => {
+                handleOpenUpdateFormChange(false);
+            })
+
     };
+
     const handleDeleteFormSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setDeleteForm((prevState) => ({ ...prevState, onSubmit: true }));
         const { id } = deleteForm;
-
         axios.post<{
             message: string;
-        }>(route('kategori-produk.delete'), {
+        }>(route('produk.delete'), {
             id: id,
         })
             .then((res) => {
@@ -237,122 +268,73 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                 });
             });
     };
-    const handleOpenCreateFormChange = (open: boolean) => {
-        setOpenCreateForm(open);
-        setCreateForm(createFormInit);
-    };
-    const handleOpenUpdateFormChange = (open: boolean) => {
-        setOpenUpdateForm(open);
-        setUpdateForm(updateFormInit);
-    };
+
 
     return (
         <AdminLayout auth={auth}>
-            <Head title="Admin - Manajemen Kategori Produk" />
+            <Head title="Admin - Manajemen Pesanan" />
             <CardTitle>
-                Manajemen Kategori Produk
+                Manajemen Pesanan
             </CardTitle>
             <CardDescription>
-                Data Kategori Produk yang terdaftar
+                Data Pesanan yang terdaftar
             </CardDescription>
             <div className="flex flex-col lg:flex-row gap-2 items-start justify-between">
-                <AlertDialog open={ openCreateForm } onOpenChange={ handleOpenCreateFormChange }>
-                    <AlertDialogTrigger asChild>
-                        <Button className="mt-4">
-                            Buat <Plus />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Tambah Kategori Produk
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="text-foreground">
-                                Menambahkan Kategori Produk baru, contoh: <strong>Alat Diagnostik</strong>
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <form className={ cn("grid items-start gap-4") } onSubmit={ handleCreateFormSubmit }>
-                            <div className="grid gap-2">
-                                <Label htmlFor="nama">Nama Kategori Produk</Label>
-                                <Input
-                                    type="text"
-                                    name="nama"
-                                    id="nama"
-                                    value={ createForm.nama }
-                                    onChange={ (event) => setCreateForm((prevState) => ({ ...prevState, nama: event.target.value })) }
-                                />
-                            </div>
-                            <Button type="submit" disabled={createForm.onSubmit || !createForm.nama }>
-                                { createForm.onSubmit
-                                    ? (
-                                        <>Memproses <Loader2 className="animate-spin" /></>
-                                    ) : (
-                                        <span>Simpan</span>
-                                    )
-                                }
-                            </Button>
-                        </form>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <Button className="mt-4" onClick={ () => router.visit(route('admin.produk.create')) }>
+                    Buat <Plus />
+                </Button>
                 <TableSearchForm />
             </div>
-            <DataTable<KategoriProduk>
+            <DataTable<Pesanan>
                 columns={columns}
                 data={pagination.data}
                 pagination={pagination}
             />
 
-            {/*--UPDATE-FORM--*/}
-            <AlertDialog open={ openUpdateForm } onOpenChange={ handleOpenUpdateFormChange }>
+            {/*UPDATE FORM*/}
+            <AlertDialog open={ openUpdateForm } onOpenChange={ setOpenUpdateForm }>
                 <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Update Kategori Produk
+                            Update Status Pesanan
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Anda akan mengubah nama Kategori Produk
+                            Anda akan mengubah Status Pesanan
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <form className={ cn("grid items-start gap-4") } onSubmit={ handleUpdateFormSubmit }>
+                    <form className={ cn("grid items-start gap-4") } onSubmit={handleUpdateStatusSubmit}>
                         <div className="grid gap-2">
-                            <Label htmlFor="nama">Nama Kategori Produk</Label>
-                            <Input
-                                type="text"
-                                name="nama"
-                                id="nama"
-                                value={ updateForm.nama }
-                                onChange={ (event) => setUpdateForm((prevState) => ({
-                                    ...prevState,
-                                    nama: event.target.value
-                                })) }
-                            />
+                            <Label htmlFor="nama">Update</Label>
+                            <Select value={String(updateForm.status_pesanan_id)} onValueChange={(val) => setUpdateForm((prevState) => ({ ...prevState, status_pesanan_id: Number(val) }))}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Pilih Status Pesanan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {statusPesanans.map((status) => ((
+                                        <SelectItem key={status.id} value={String(status.id)}>{status.nama}</SelectItem>
+                                    )))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <Button type="submit" disabled={updateForm.onSubmit}>
-                            { updateForm.onSubmit
-                                ? (
-                                    <>Memproses <Loader2 className="animate-spin" /></>
-                                ) : (
-                                    <span>Simpan</span>
-                                )
-                            }
+                        <Button type="submit">
+                            <span>Simpan</span>
                         </Button>
                     </form>
                     <AlertDialogCancel>Batal</AlertDialogCancel>
                 </AlertDialogContent>
             </AlertDialog>
-            {/*---UPDATE-FORM---*/}
+            {/*END-OF-UPDATE-FORM*/}
 
-            {/*--DELETE-FORM--*/}
+            {/*--DELETE-FORM--*/ }
             <AlertDialog open={ openDeleteForm } onOpenChange={ setOpenDeleteForm }>
                 <AlertDialogContent className="my-alert-dialog-content" onOpenAutoFocus={ (e) => e.preventDefault() }>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Hapus Kategori Produk
+                            Hapus Periode Pesanan
                         </AlertDialogTitle>
                         <AlertDialogDescription className="flex flex-col gap-0.5">
                             <p className="text-red-600 font-bold">
-                                Anda akan menghapus Kategori Produk!
+                                Anda akan menghapus Pesanan!
                             </p>
                             <br/>
                             <p className="text-red-600">
@@ -379,10 +361,11 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                             />
                             <p>Ketik <strong>S3MEDIC</strong> untuk melanjutkan</p>
                         </div>
-                        <Button type="submit" disabled={ deleteForm.onSubmit || deleteForm.validation !== 'S3MEDIC'}>
+                        <Button type="submit"
+                                disabled={ deleteForm.onSubmit || deleteForm.validation !== 'S3MEDIC' }>
                             { deleteForm.onSubmit
                                 ? (
-                                    <>Memproses <Loader2 className="animate-spin" /></>
+                                    <>Memproses <Loader2 className="animate-spin"/></>
                                 ) : (
                                     <span>Simpan</span>
                                 )
@@ -392,7 +375,7 @@ export default function AdminKategoriProdukIndexPage({ auth, pagination }: PageP
                     <AlertDialogCancel>Batal</AlertDialogCancel>
                 </AlertDialogContent>
             </AlertDialog>
-            {/*---DELETE-FORM---*/}
+            {/*---DELETE-FORM---*/ }
         </AdminLayout>
     );
 }

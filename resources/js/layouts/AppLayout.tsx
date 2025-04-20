@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PageProps } from "@/types";
 import { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
+import { ProfileDropdown } from "@/components/profile-dropdown";
 
 export const AppLayout = ({ auth, children, active }: PageProps<{
     children: ReactNode;
@@ -22,7 +23,7 @@ export const AppLayout = ({ auth, children, active }: PageProps<{
                 <header className="sticky top-0 z-50 w-full border-b border-blue-100 bg-white">
                     <div className="container mx-auto flex h-16 items-center justify-between px-4">
                         <div className="flex items-center">
-                            <Link href="#" className="flex items-center">
+                            <Link href="/" className="flex items-center">
                                 <div className="text-2xl font-bold text-blue-600">S3MedicStore</div>
                             </Link>
                         </div>
@@ -37,26 +38,7 @@ export const AppLayout = ({ auth, children, active }: PageProps<{
                         <div className="flex items-center space-x-4">
                             {auth.user ? (
                                 <>
-                                    <TooltipProvider>
-                                        <Tooltip delayDuration={100}>
-                                            <TooltipTrigger asChild>
-                                                <button
-                                                    onClick={() => {
-                                                        if (!auth.user) {
-                                                            router.visit(route('auth.login'));
-                                                        }
-                                                    }}
-                                                    className="hidden md:flex items-center justify-center rounded-full bg-blue-50 p-2 text-blue-600 hover:bg-blue-100"
-                                                >
-                                                    <User className="h-5 w-5" />
-                                                    <p>{auth.user.nama}</p>
-                                                </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="bg-blue-600">
-                                                <p>Akun</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
+                                    <ProfileDropdown auth={auth} />
                                     <TooltipProvider>
                                         <Tooltip delayDuration={100}>
                                             <TooltipTrigger asChild>
@@ -77,7 +59,7 @@ export const AppLayout = ({ auth, children, active }: PageProps<{
                                             <button
                                                 onClick={() => {
                                                     if (!auth.user) {
-                                                        router.visit(route('auth.login'));
+                                                        router.visit(route('pelanggan.login'));
                                                     }
                                                 }}
                                                 className="hidden md:flex items-center justify-center rounded-full bg-blue-50 p-2 text-blue-600 hover:bg-blue-100"
@@ -91,10 +73,6 @@ export const AppLayout = ({ auth, children, active }: PageProps<{
                                     </Tooltip>
                                 </TooltipProvider>
                             )}
-
-                            <button className="md:hidden flex items-center justify-center rounded-md p-2 text-blue-900">
-                                <Menu className="h-6 w-6" />
-                            </button>
                         </div>
                     </div>
                 </header>

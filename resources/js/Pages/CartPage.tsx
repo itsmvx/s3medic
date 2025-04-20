@@ -8,16 +8,13 @@ import {
     Minus,
     ArrowRight,
     ShoppingBag,
-    ChevronLeft,
-    Search,
-    User, ShoppingCart, Menu
+    ChevronLeft, Loader2,
 } from "lucide-react"
-import { MyShorekeeper } from "@/lib/StaticImagesLib";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageProps } from "@/types";
 import { AppLayout } from "@/layouts/AppLayout";
 import axios, { AxiosError } from "axios";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 type CartItem = {
     id: number;
@@ -30,23 +27,33 @@ type CartItem = {
     kategori_produk: string;
 }
 
-const paymentOptions = [
-    { id: 1, nama: "Tunai (Ambil Di tempat)", available: true },
-    { id: 2, nama: "Paypal", available: false },
+const shippingOptions = [
+    { id: 1, nama: "Ambil di tempat", available: true },
+    { id: 2, nama: "Kirim ke Alamat", available: true },
 ]
 
-export default function CartPage({ auth, cartProducts }: PageProps<{
+export default function CartPage({ auth, currentDate, cartProducts, metodePembayarans, status_pesanan_id }: PageProps<{
+    currentDate: string;
     cartProducts: CartItem[];
+    metodePembayarans: {
+        id: number;
+        nama: string;
+        is_available: boolean;
+    }[];
+    status_pesanan_id: number;
 }>) {
     const { toast } = useToast();
     const [cartItems, setCartItems] = useState(cartProducts);
-    const [paymentMethod, setPaymentMethod] = useState(1);
+    const [paymentMethod, setpaymentMethod] = useState(0);
+    const [shippingMethod, setShippingMethod] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
 
+    console.log(cartItems)
     // Calculate subtotal
     const subtotal = cartItems.reduce((total, item) => total + item.harga * item.jumlah, 0)
 
-    // Calculate tax (assuming 12% tax rate)
-    const taxRate = 0.12
+    // Calculate tax (assuming 11% tax rate)
+    const taxRate = 0.11
     const tax = (subtotal) * taxRate
 
     // Calculate total
@@ -57,7 +64,17 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
             id: id
         })
             .then(() => {
-                router.reload({ only: ['cartProducts'] })
+                router.reload({ only: ['cartProducts']});
+                setCartItems(prevState => {
+                    return prevState.map(item => {
+                        if (item.id === id) {
+                            const stokTersedia = Math.max(0, item.stok - item.jumlah);
+                            if (stokTersedia === 0) return item;
+                            return { ...item, jumlah: item.jumlah + 1 };
+                        }
+                        return item;
+                    });
+                });
             })
             .catch((err: unknown) => {
                 const errMsg = err instanceof AxiosError && err.response?.data?.message
@@ -75,7 +92,16 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
             id: id
         })
             .then(() => {
-                router.reload({ only: ['cartProducts'] })
+                router.reload({ only: ['cartProducts'] });
+                setCartItems(prevState => {
+                    return prevState.map(item => {
+                        if (item.id === id) {
+                            if (item.jumlah <= 1) return item;
+                            return { ...item, jumlah: item.jumlah - 1 };
+                        }
+                        return item;
+                    });
+                });
             })
             .catch((err: unknown) => {
                 const errMsg = err instanceof AxiosError && err.response?.data?.message
@@ -91,16 +117,85 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
 
     // Remove item from cart
     const removeItem = (id: number) => {
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== id))
-    }
+        axios.post(route('keranjang.delete'), {
+            id: id
+        })
+            .then(() => {
+                router.reload({ only: ['cartProducts'] });
+                setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+            })
+            .catch((err: unknown) => {
+                const errMsg = err instanceof AxiosError && err.response?.data?.message
+                    ? err.response.data.message as string
+                    : 'Periksa lagi koneksi anda'
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal diproses!",
+                    description: errMsg,
+                });
+            });
+    };
+
+    const cartSubmit = () => {
+        const authUser = auth.user;
+
+        if (!authUser) {
+            toast({
+                variant: "destructive",
+                title: "Permintaan gagal diproses!",
+                description: "Anda belum login!",
+            });
+            return;
+        }
+        if (auth.role !== 'pelanggan') {
+            toast({
+                variant: "destructive",
+                title: "Hey !",
+                description: 'Anda bukan Pelanggan',
+            });
+            return;
+        }
+        setIsLoading(true);
+        axios.post<{
+            message: string;
+        }>(route('pesanan.create'), {
+            pelanggan_id: authUser.id,
+            status_pesanan_id: status_pesanan_id,
+            total: total,
+            metode_pembayaran_id: paymentMethod,
+            tanggal_pesanan: new Date(currentDate),
+            transaksi: cartItems.map((cartItem) => ({
+                jumlah: cartItem.jumlah,
+                nama: cartItem.nama,
+                harga: cartItem.harga,
+            }))
+        })
+            .then((res) => {
+                toast({
+                    variant: 'default',
+                    className: 'bg-green-500 text-white',
+                    title: "Berhasil!",
+                    description: res.data.message,
+                });
+                router.visit(route('store'));
+            })
+            .catch((err: unknown) => {
+                toast({
+                    variant: "destructive",
+                    title: "Permintaan gagal",
+                    description: 'Server gagal memproses permintaan',
+                });
+            })
+            .finally(() => setIsLoading(false));
+    };
 
     return (
         <>
             <AppLayout auth={auth}>
-                <main className="container mx-auto px-4 py-8">
+                <main className="min-h-screen container mx-auto px-4 py-8">
                     {cartItems.length === 0 ? (
                         // Empty cart state
-                        <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-12">
+                        <div className="min-h-96 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-12">
                             <div className="rounded-full bg-blue-50 p-6">
                                 <ShoppingBag className="h-12 w-12 text-blue-500" />
                             </div>
@@ -216,20 +311,48 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
                                                     <dd className="font-medium text-gray-900">Rp{subtotal.toLocaleString('id-ID')}</dd>
                                                 </div>
 
-                                                {/* Shipping Options */}
+                                                {/* Payment Options */}
                                                 <div className="py-4">
                                                     <dt className="text-gray-600 mb-2">Metode Pembayaran</dt>
                                                     <dd>
                                                         <div className="space-y-2">
-                                                            {paymentOptions.map((option) => (
+                                                            {metodePembayarans.map((option) => (
+                                                                <div key={option.id} className="flex items-center">
+                                                                    <input
+                                                                        id={`payment-${option.id}`}
+                                                                        name="payment-method"
+                                                                        type="radio"
+                                                                        disabled={!option.is_available}
+                                                                        checked={paymentMethod === option.id}
+                                                                        onChange={() => setpaymentMethod(option.id)}
+                                                                        className="peer h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                                                    />
+                                                                    <label
+                                                                        htmlFor={`payment-${option.id}`}
+                                                                        className="peer-disabled:opacity-60 ml-3 flex flex-1 justify-between text-gray-700"
+                                                                    >
+                                                                        <span>{option.nama}</span>
+                                                                    </label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </dd>
+                                                </div>
+
+                                                {/* Payment Options */}
+                                                <div className="py-4">
+                                                    <dt className="text-gray-600 mb-2">Metode Pengiriman</dt>
+                                                    <dd>
+                                                        <div className="space-y-2">
+                                                            {shippingOptions.map((option) => (
                                                                 <div key={option.id} className="flex items-center">
                                                                     <input
                                                                         id={`shipping-${option.id}`}
                                                                         name="shipping-method"
                                                                         type="radio"
                                                                         disabled={!option.available}
-                                                                        checked={paymentMethod === option.id}
-                                                                        onChange={() => setPaymentMethod(option.id)}
+                                                                        checked={shippingMethod === option.id}
+                                                                        onChange={() => setShippingMethod(option.id)}
                                                                         className="peer h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                                                     />
                                                                     <label
@@ -243,9 +366,10 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
                                                         </div>
                                                     </dd>
                                                 </div>
+
                                                 {/* Tax */}
                                                 <div className="flex items-center justify-between py-4">
-                                                    <dt className="text-gray-600">PPN (12%)</dt>
+                                                    <dt className="text-gray-600">PPN (11%)</dt>
                                                     <dd className="font-medium text-gray-900">Rp{tax.toLocaleString('id-ID')}</dd>
                                                 </div>
 
@@ -259,12 +383,13 @@ export default function CartPage({ auth, cartProducts }: PageProps<{
                                     </div>
 
                                     <div className="border-t border-gray-200 px-6 py-4">
-                                        <Link
-                                            href="/checkout-page"
-                                            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                        >
-                                            Buat Pesanan <ArrowRight className="ml-2 h-5 w-5" />
-                                        </Link>
+                                        <Button disabled={!paymentMethod || isLoading} onClick={cartSubmit} className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            {isLoading ? (
+                                                <>Memproses <Loader2 className="animate-spin" /></>
+                                            ) : (
+                                                <><p>Buat Pesanan</p> <ArrowRight className="ml-2 h-5 w-5" /></>
+                                            )}
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
