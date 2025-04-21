@@ -65,7 +65,7 @@ class PesananController extends Controller
                 'subject' => "📢 Notifikasi Pesanan : ". $pesanan->kode,
                 'nama' => $pesanan->pelanggan->nama,
             ];
-            Mail::to('xenovhru@gmail.com')->send(new SendMail($data, $dataPDF));
+            Mail::to($pesanan->pelanggan->email)->send(new SendMail($data, $dataPDF));
             $pdf->download('rekap-transaksi.pdf');
             return response()->json([
                 'message' => 'Pesanan berhasil ditambahkan'

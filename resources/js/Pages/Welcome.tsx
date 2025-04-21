@@ -17,7 +17,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Link, router } from "@inertiajs/react"
-import { MyShorekeeper, MyShorekeeperHD } from "@/lib/StaticImagesLib";
+import { Logo, MyShorekeeper, MyShorekeeperHD } from "@/lib/StaticImagesLib";
 import { PageProps } from "@/types";
 import { AppLayout } from "@/layouts/AppLayout";
 
@@ -59,7 +59,7 @@ export default function Welcome({ auth, newestProducts }: PageProps<{
                                 </div>
                                 <div className="flex justify-center lg:justify-end">
                                     <img
-                                        src={MyShorekeeperHD}
+                                        src={Logo}
                                         alt="Modern medical equipment"
                                         className="w-[400px] md:w-[550px] h-[300px] md:h-[400px] rounded-lg object-cover object-center shadow-lg"
                                     />

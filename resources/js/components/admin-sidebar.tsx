@@ -13,7 +13,7 @@ import {
     SidebarMenuSubItem,
     SidebarRail,
 } from "@/components/ui/sidebar"
-import { ShorekeeperPP } from "@/lib/StaticImagesLib";
+import { Logo, ShorekeeperPP } from "@/lib/StaticImagesLib";
 import { Link } from "@inertiajs/react";
 import { Separator } from "@/components/ui/separator";
 
@@ -77,7 +77,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                     <SidebarMenuItem>
                         <div className="px-3 flex gap-1 items-center">
                             <div className="flex aspect-square size-16 items-center justify-center rounded-lg text-sidebar-primary-foreground">
-                                <img src={ ShorekeeperPP } width={ 80 } alt="jarkom-jaya"/>
+                                <img src={ Logo } width={ 80 } alt="jarkom-jaya"/>
                             </div>
                             <p className="font-semibold text-lg select-none">
                                 S3 Medstore
