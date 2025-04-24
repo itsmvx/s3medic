@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\SendMail;
 use App\Models\Keranjang;
 use App\Models\Pesanan;
+use App\Models\Produk;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -43,6 +44,10 @@ class PesananController extends Controller
                 'alamat_pengiriman' => $alamat_pengiriman
             ]);
             Keranjang::where('pelanggan_id', $validated['pelanggan_id'])->delete();
+            foreach ($validated['transaksi'] as $item) {
+                Produk::where('id', $item['produk_id'])->decrement('stok', $item['jumlah']);
+            }
+
             DB::commit();
 
             $dataPDF = [

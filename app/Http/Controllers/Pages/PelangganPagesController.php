@@ -41,6 +41,7 @@ class PelangganPagesController extends Controller
                 ->select([
                     'keranjang.id as id',
                     'keranjang.jumlah',
+                    'produk.id as produk_id',
                     'produk.nama',
                     'produk.deskripsi',
                     'produk.harga',

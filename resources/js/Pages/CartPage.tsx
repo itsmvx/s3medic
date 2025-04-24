@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 type CartItem = {
     id: number;
+    produk_id: number;
     jumlah: number;
     nama: string;
     deskripsi: string;
@@ -165,6 +166,7 @@ export default function CartPage({ auth, currentDate, cartProducts, metodePembay
             metode_pembayaran_id: paymentMethod,
             tanggal_pesanan: new Date(currentDate),
             transaksi: cartItems.map((cartItem) => ({
+                produk_id: cartItem.produk_id,
                 jumlah: cartItem.jumlah,
                 nama: cartItem.nama,
                 harga: cartItem.harga,
